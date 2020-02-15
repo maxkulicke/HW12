@@ -63,6 +63,16 @@ class CMS {
 
   addEmployee() {
     console.log("called addEmployee!");
+    connection.query(
+              "INSERT INTO employees SET ?",
+              {
+                item_name: answer.item,
+                category: answer.category,
+                starting_bid: answer.startingBid || 0,
+                highest_bid: answer.startingBid || 0
+              },
+              function(err) {
+                if (err) throw err;
   }
 
   updateEmployee(employee) {
