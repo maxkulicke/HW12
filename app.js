@@ -6,7 +6,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'yourRootPassword',
-  database: 'top_songsDB'
+  database: 'employeesDB'
 });
 
 connection.connect((err) => {
@@ -17,54 +17,6 @@ connection.connect((err) => {
 });
 
 const cms = new CMS("test");
-
-// const createDB = () => {
-//   connection.query(
-//     "DROP DATABASE IF EXISTS employeesDB;
-
-//     CREATE DATABASE employeesDB;
-    
-//     USE employeesDB;
-    
-//     CREATE TABLE employees (
-//       id INT NOT NULL AUTO_INCREMENT,
-//       first_name VARCHAR(30) NOT NULL,
-//       last_name VARCHAR(30) NOT NULL,
-//       role_id INT NOT NULL,
-//       manager_id INT NULL,
-//       PRIMARY KEY (id)
-//     );
-    
-//     CREATE TABLE roles (
-//       id INT NOT NULL,
-//       title VARCHAR(30) NOT NULL,
-//       salary DECIMAL(10,2) NOT NULL,
-//       world_score INT NOT NULL,
-//       PRIMARY KEY (id)
-//     );
-    
-//     CREATE TABLE departments (
-//       id INT NOT NULL,
-//       name VARCHAR(30) NOT NULL,
-//       PRIMARY KEY (id)
-//     );"
-//   )
-// }
-
-// //from in class:
-// var mysql = require("mysql");
-// var inquirer = require("inquirer");
-// // create the connection information for the sql database
-// var connection = mysql.createConnection({
-//   host: "localhost",
-//   // Your port; if not 3306
-//   port: 3306,
-//   // Your username
-//   user: "root",
-//   // Your password
-//   password: "yourRootPassword",
-//   database: "greatBay_DB"
-// });
 
 // connect to the mysql server and sql database
 
@@ -79,7 +31,7 @@ async function start() {
     if (choice.choice === "return home") {
       start();
     } else {
-      cms.actionChooser(action.action, choice.choice);
+      actionChooser(action.action, choice.choice);
     }
   } catch (err) {
     console.log(err);
@@ -106,111 +58,221 @@ function choicePrompt(action) {
   return choice;
 }
 
+function actionChooser(action, choice) {
+  console.log(`${action} & ${choice}`);
+  switch (action) {
+    case "view":
+      viewRunner(choice);
+      break;
+    case "update":
+      updateRunner(choice);
+      break;
+    case "add":
+      addRunner(choice);
+      break;
+    case "delete":
+      deleteRunner(choice);
+      break;
+    default:
+      break;
+  }
+}
 
-// function to handle posting new items up for auction
-// function postAuction() {
-//   // prompt for info about the item being put up for auction
-//   inquirer
-//     .prompt([
-//       {
-//         name: "item",
-//         type: "input",
-//         message: "What is the item you would like to submit?"
-//       },
-//       {
-//         name: "category",
-//         type: "input",
-//         message: "What category would you like to place your auction in?"
-//       },
-//       {
-//         name: "startingBid",
-//         type: "input",
-//         message: "What would you like your starting bid to be?",
-//         validate: function(value) {
-//           if (isNaN(value) === false) {
-//             return true;
-//           }
-//           return false;
-//         }
-//       }
-//     ])
-//     .then(function(answer) {
-//       // when finished prompting, insert a new item into the db with that info
-//       connection.query(
-//         "INSERT INTO auctions SET ?",
-//         {
-//           item_name: answer.item,
-//           category: answer.category,
-//           starting_bid: answer.startingBid || 0,
-//           highest_bid: answer.startingBid || 0
-//         },
-//         function(err) {
-//           if (err) throw err;
-//           console.log("Your auction was created successfully!");
-//           // re-prompt the user for if they want to bid or post
-//           start();
-//         }
-//       );
-//     });
+function addRunner(choice) {
+  switch (choice) {
+    case "employee":
+      getEmployeeInfo();
+      break;
+    case "role":
+      getRoleInfo();
+      break;
+    case "department":
+      getDepartmentInfo();
+      break;
+    default:
+      break;
+  }
+}
+
+function deleteRunner(choice) {
+  switch (choice) {
+    case "employee":
+      break;
+    case "role":
+      break;
+    case "department":
+      break;
+    default:
+      break;
+  }
+}
+
+function viewRunner(choice) {
+  switch (choice) {
+    case "employee":
+      let query = cms.viewAllEmployees();
+      querySender(query);
+      break;
+    case "role":
+      break;
+    case "department":
+      break;
+    default:
+      break;
+  }
+}
+
+function updateRunner(choice) {
+  switch (choice) {
+    case "employee":
+      break;
+    case "role":
+      break;
+    case "department":
+      break;
+    default:
+      break;
+  }
+}
+
+function getEmployeeInfo() {
+  const employeeInfo = inquirer.prompt([
+    {
+      name: "first_name",
+      type: "input",
+      message: "First Name:",
+    },
+    {
+      name: "last_name",
+      type: "input",
+      message: "Last Name:",
+    },
+    {
+      name: "role",
+      type: "list",
+      message: "What is this employee's role?",
+      choices: ["CEO", "CFO", "CTO", "Lead Sales Rep", "Sales Rep", "Head Counsel",
+        "Counsel", "Legal Analyst", "Assistant CFO", "Lead Accountant", "Accountant",
+        "Head of Human Resources", "Human Resources Representative"]
+    }
+  ])
+
+  const roleID = cms.getRoleID(employeeInfo.role);
+
+  const employee = {
+    first_name: employeeInfo.first_name,
+    last_name: employeeInfo.last_name,
+    role: employeeInfo.role,
+    id: roleID
+  }
+  return employee;
+}
+
+function getRoleInfo() {
+  const roleInfo = inquirer.prompt([
+    {
+      name: "id",
+      type: "input",
+      message: "What is the ID number of the role?",
+    },
+    {
+      name: "name",
+      type: "input",
+      message: "What is the name of the role?",
+    },
+    {
+      name: "salary",
+      type: "input",
+      message: "What is the salary for this role?",
+    },
+    {
+      name: "department",
+      type: "list",
+      message: "What department is this role in? ",
+      choices: ["100 - Management", "200 - Sales", "300 - Legal", "400 - Finance", "500 - HR"]
+    }
+  ])
+
+  const role = {
+    id: roleInfo.id,
+    name: roleInfo.name,
+    salary: roleInfo.salary,
+    department: roleInfo.department
+  }
+  return role;
+}
+
+function getDepartmentInfo() {
+  const departmentInfo = inquirer.prompt([
+    {
+      name: "id",
+      type: "input",
+      message: "What is the ID number of the department?",
+    },
+    {
+      name: "name",
+      type: "input",
+      message: "What is the name of the department?",
+    }
+  ])
+
+  const department = {
+    id: departmentInfo.id,
+    name: departmentInfo.name
+  }
+  return department;
+}
+
+const querySender = (query) => {
+  connection.query(query, function (err, res) {
+    console.log(res);
+  })
+}
+
+// const createDB = () => {
+//   connection.query(
+//     "DROP DATABASE IF EXISTS employeesDB;
+
+//     CREATE DATABASE employeesDB;
+
+//     USE employeesDB;
+
+//     CREATE TABLE employees (
+//       id INT NOT NULL AUTO_INCREMENT,
+//       first_name VARCHAR(30) NOT NULL,
+//       last_name VARCHAR(30) NOT NULL,
+//       role_id INT NOT NULL,
+//       manager_id INT NULL,
+//       PRIMARY KEY (id)
+//     );
+
+//     CREATE TABLE roles (
+//       id INT NOT NULL,
+//       title VARCHAR(30) NOT NULL,
+//       salary DECIMAL(10,2) NOT NULL,
+//       world_score INT NOT NULL,
+//       PRIMARY KEY (id)
+//     );
+
+//     CREATE TABLE departments (
+//       id INT NOT NULL,
+//       name VARCHAR(30) NOT NULL,
+//       PRIMARY KEY (id)
+//     );"
+//   )
 // }
-// function bidAuction() {
-//   // query the database for all items being auctioned
-//   connection.query("SELECT * FROM auctions", function(err, results) {
-//     if (err) throw err;
-//     // once you have the items, prompt the user for which they'd like to bid on
-//     inquirer
-//       .prompt([
-//         {
-//           name: "choice",
-//           type: "rawlist",
-//           choices: function() {
-//             var choiceArray = [];
-//             for (var i = 0; i < results.length; i++) {
-//               choiceArray.push(results[i].item_name);
-//             }
-//             return choiceArray;
-//           },
-//           message: "What auction would you like to place a bid in?"
-//         },
-//         {
-//           name: "bid",
-//           type: "input",
-//           message: "How much would you like to bid?"
-//         }
-//       ])
-//       .then(function(answer) {
-//         // get the information of the chosen item
-//         var chosenItem;
-//         for (var i = 0; i < results.length; i++) {
-//           if (results[i].item_name === answer.choice) {
-//             chosenItem = results[i];
-//           }
-//         }
-//         // determine if bid was high enough
-//         if (chosenItem.highest_bid < parseInt(answer.bid)) {
-//           // bid was high enough, so update db, let the user know, and start over
-//           connection.query(
-//             "UPDATE auctions SET ? WHERE ?",
-//             [
-//               {
-//                 highest_bid: answer.bid
-//               },
-//               {
-//                 id: chosenItem.id
-//               }
-//             ],
-//             function(error) {
-//               if (error) throw err;
-//               console.log("Bid placed successfully!");
-//               start();
-//             }
-//           );
-//         }
-//         else {
-//           // bid wasn't high enough, so apologize and start over
-//           console.log("Your bid was too low. Try again...");
-//           start();
-//         }
-//       });
-//   });
-// }
+
+// //from in class:
+// var mysql = require("mysql");
+// var inquirer = require("inquirer");
+// // create the connection information for the sql database
+// var connection = mysql.createConnection({
+//   host: "localhost",
+//   // Your port; if not 3306
+//   port: 3306,
+//   // Your username
+//   user: "root",
+//   // Your password
+//   password: "yourRootPassword",
+//   database: "greatBay_DB"
+// });

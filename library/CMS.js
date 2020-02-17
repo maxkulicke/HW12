@@ -4,54 +4,34 @@ class CMS {
     this.name = name;
   }
 
-  actionChooser(action, choice) {
-    console.log("made it into actionChooser");
-    console.log(`${action} & ${choice}`);
-    switch (action) {
-      case "view":
-        if (choice === "employee") {
-          this.viewEmployee();
-          break;
-        } else if (choice === "role") {
-          this.viewRole();
-          break;
-        } else {
-          this.viewDept();
-          break;
-        }
-      case "update":
-        if (choice === "employee") {
-          this.updateEmployee();
-          break;
-        } else if (choice === "role") {
-          this.updateRole();
-          break;
-        } else {
-          this.updateDept();
-          break;
-        }
-      case "add":
-        if (choice === "employee") {
-          this.addEmployee();
-          break;
-        } else if (choice === "role") {
-          this.addRole();
-          break;
-        } else {
-          this.addDept();
-          break;
-        }
-      case "delete":
-        if (choice === "employee") {
-          this.deleteEmployee();
-          break;
-        } else if (choice === "role") {
-          this.deleteRole();
-          break;
-        } else {
-          this.deleteDept();
-          break;
-        }
+  getRoleID(role) {
+    switch (role) {
+      case "CEO":
+        return 101;
+      case "CFO":
+        return 102;
+      case "CTO":
+        return 103;
+      case "Lead Sales Rep":
+        return 201;
+      case "Sales Rep":
+        return 202;
+      case "Head Counsel":
+        return 301;
+      case "Counsel":
+        return 302;
+      case "Legal Analyst":
+        return 303;
+      case "Assistant CFO":
+        return 401;
+      case "Lead Accountant":
+        return 402;
+      case "Accountant":
+        return 403;
+      case "Head of Human Resources":
+        return 501;
+      case "Human Resources Representative":
+        return 502;
       default:
         break;
     }
@@ -59,20 +39,20 @@ class CMS {
 
   viewEmployee(employee) {
     console.log("called viewEmployee!");
+    const template = `SELECT first_name, last_name FROM employees WHERE first_name = 
+    ${employee.first_name} AND last_name = ${employee.last_name};`;
+    console.log(template);
+    return template;
+  }
+
+  viewAllEmployees() {
+    const template = `SELECT * FROM employees;`;
+    console.log(`CMS template returned: ${template}`);
+    return template;
   }
 
   addEmployee() {
     console.log("called addEmployee!");
-    connection.query(
-              "INSERT INTO employees SET ?",
-              {
-                item_name: answer.item,
-                category: answer.category,
-                starting_bid: answer.startingBid || 0,
-                highest_bid: answer.startingBid || 0
-              },
-              function(err) {
-                if (err) throw err;
   }
 
   updateEmployee(employee) {
