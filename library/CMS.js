@@ -59,7 +59,6 @@ class CMS {
   }
 
   addEmployee(employee) {
-    console.log("called addEmployee!");
     if (employee.manager_id) {
       var template = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES 
       (${ employee.first_name}, ${employee.last_name}, ${employee.role_id}, ${employee.manager_id});`;
@@ -67,19 +66,16 @@ class CMS {
       var template = `INSERT INTO employees (first_name, last_name, role_id) VALUES 
     (${ employee.first_name}, ${employee.last_name}, ${employee.role_id});`;
     }
-    console.log(`cms addEmployee template: ${template}`);
     return template;
   }
 
   addRole(role) {
-    console.log("called addRole!");
     const template = `INSERT INTO roles(id, title, salary, department_id) VALUES
       (${ role.id}, ${role.title}, ${role.salary}, ${role.department_id}); `
     return template;
   }
 
   addDept(dept) {
-    console.log("called addDept!");
     const template = `INSERT INTO departments(id, name) VALUES(${dept.id}, ${dept.name}); `
     return template;
   }
@@ -97,20 +93,17 @@ class CMS {
   }
 
   deleteEmployee(employee) {
-    console.log("called deleteEmployee!");
     const template = `DELETE FROM employees WHERE first_name = 
     ${employee.first_name} AND last_name = ${employee.last_name};`;
     return template;
   }
 
   deleteRole(role) {
-    console.log("called deleteRole!");
     const template = `DELETE FROM roles WHERE name = ${role.name};`;
     return template;
   }
 
   deleteDept(dept) {
-    console.log("called deleteDept!");
     const template = `DELETE FROM departments WHERE name = ${dept.name};`;
     return template;
   }
