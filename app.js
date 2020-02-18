@@ -18,7 +18,6 @@ connection.connect((err) => {
 
 const cms = new CMS("test");
 
-// function which prompts the user for what action they should take
 async function start() {
   try {
     const action = await actionPrompt();
@@ -41,7 +40,7 @@ function actionPrompt() {
     name: "action",
     type: "list",
     message: "What would you like to do?",
-    choices: ["view", "update", "add", "exit"]
+    choices: ["view", "update", "add", "delete", "exit"]
   })
   return action;
 }
@@ -54,97 +53,6 @@ function choicePrompt(action) {
     choices: ["employee", "role", "department", "return home"]
   })
   return choice;
-}
-
-function actionChooser(action, choice) {
-  console.log(`${action} & ${choice}`);
-  switch (action) {
-    case "view":
-      viewRunner(choice);
-      break;
-    case "update":
-      updateRunner(choice);
-      break;
-    case "add":
-      addRunner(choice);
-      break;
-    case "delete":
-      deleteRunner(choice);
-      break;
-    default:
-      break;
-  }
-}
-
-async function addRunner(choice) {
-  try {
-    switch (choice) {
-      case "employee":
-        getEmployeeInfo();
-        break;
-      case "role":
-        getRoleInfo();
-        break;
-      case "department":
-        getDepartmentInfo();
-        break;
-      default:
-        break;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-function deleteRunner(choice) {
-  switch (choice) {
-    case "employee":
-      break;
-    case "role":
-      break;
-    case "department":
-      break;
-    default:
-      break;
-  }
-}
-
-function viewRunner(choice) {
-  switch (choice) {
-    case "employee":
-      var query = cms.viewAllTemplate(`employees`);
-      connection.query(query, function (err, res) {
-        selector(`employee`, res);
-      });
-      break;
-    case "role":
-      var query = cms.viewAllTemplate(`roles`);
-      connection.query(query, function (err, res) {
-        selector(`role`, res);
-      });
-      break;
-    case "department":
-      var query = cms.viewAllTemplate(`departments`);
-      connection.query(query, function (err, res) {
-        selector(`department`, res);
-      });
-      break;
-    default:
-      break;
-  }
-}
-
-function updateRunner(choice) {
-  switch (choice) {
-    case "employee":
-      break;
-    case "role":
-      break;
-    case "department":
-      break;
-    default:
-      break;
-  }
 }
 
 function getEmployeeInfo() {
@@ -246,26 +154,174 @@ function getDepartmentInfo() {
 
 }
 
-function selector(category, results) {
-  let namesArray = results.map(function nameGetter(object) {
-    return `${object.first_name} ${object.last_name}`;
-  })
-  console.log(namesArray);
-  const selection = inquirer.prompt(
+function actionChooser(action, choice) {
+  console.log(`${action} & ${choice}`);
+  switch (action) {
+    case "view":
+      viewRunner(choice);
+      break;
+    case "update":
+      updateRunner(choice);
+      break;
+    case "add":
+      addRunner(choice);
+      break;
+    case "delete":
+      deleteRunner(choice);
+      break;
+    default:
+      break;
+  }
+}
+
+async function addRunner(choice) {
+  try {
+    switch (choice) {
+      case "employee":
+        getEmployeeInfo();
+        break;
+      case "role":
+        getRoleInfo();
+        break;
+      case "department":
+        getDepartmentInfo();
+        break;
+      default:
+        break;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function deleteRunner(choice) {
+  switch (choice) {
+    case "employee":
+      var query = cms.viewAllTemplate(`employees`);
+      connection.query(query, async function (err, res) {
+        var selection = await selector(`employee`, res);
+        const names = selection.selection.split(" ");
+        const employee = {
+          first_name: names[0],
+          last_name: names[1]
+        };
+        const query = cms.deleteEmployee(employee);
+        console.log(`query: ${query}`);
+      });
+      break;
+    case "role":
+      var query = cms.viewAllTemplate(`roles`);
+      connection.query(query, async function (err, res) {
+        var selection = await selector(`role`, res);
+        const roleName = selection.selection.split(" ");
+        const role = { name: roleName[0] };
+        const query = cms.deleteRole(role);
+        console.log(`query: ${query}`);
+      });
+      break;
+    case "department":
+      var query = cms.viewAllTemplate(`departments`);
+      connection.query(query, async function (err, res) {
+        var selection = await selector(`department`, res);
+        const dept = { name: selection.selection };
+        const query = cms.deleteDept(dept);
+        console.log(`query: ${query}`);
+      });
+      break;
+    default:
+      break;
+  }
+}
+
+function viewRunner(choice) {
+  switch (choice) {
+    case "employee":
+      var query = cms.viewAllTemplate(`employees`);
+      connection.query(query, async function (err, res) {
+        var selection = await selector(`employee`, res);
+        const names = selection.selection.split(" ");
+        const employee = {
+          first_name: names[0],
+          last_name: names[1]
+        };
+        const query = cms.viewEmployee(employee);
+        console.log(`query: ${query}`);
+      });
+      break;
+    case "role":
+      var query = cms.viewAllTemplate(`roles`);
+      connection.query(query, async function (err, res) {
+        var selection = await selector(`role`, res);
+        const roleName = selection.selection.split(" ");
+        const role = { name: roleName[0] };
+        const query = cms.viewRole(role);
+        console.log(`query: ${query}`);
+      });
+      break;
+    case "department":
+      var query = cms.viewAllTemplate(`departments`);
+      connection.query(query, async function (err, res) {
+        var selection = await selector(`department`, res);
+        const dept = { name: selection.selection };
+        const query = cms.viewDept(dept);
+        console.log(`query: ${query}`);
+      });
+      break;
+    default:
+      break;
+  }
+}
+
+function updateRunner(choice) {
+  switch (choice) {
+    case "employee":
+      break;
+    case "role":
+      break;
+    case "department":
+      break;
+    default:
+      break;
+  }
+}
+
+async function selector(category, results) {
+  var choicesArray = [];
+  switch (category) {
+    case "employee":
+      choicesArray = results.map(function nameGetter(object) {
+        return `${object.first_name} ${object.last_name}`;
+      })
+      break;
+    case "department":
+      choicesArray = results.map(function roleGetter(object) {
+        return `${object.name}`;
+      })
+      break;
+    case "role":
+      choicesArray = results.map(function roleGetter(object) {
+        return `${object.title}`;
+      })
+      break;
+    default:
+      break;
+  }
+
+  console.log(`choices array: ${choicesArray}`);
+  const selection = await inquirer.prompt(
     {
       name: "selection",
       type: "list",
       message: `Which ${category} would you like to select?`,
-      choices: namesArray
-    })
+      choices: choicesArray
+    });
+  return selection;
 }
 
 async function querySender(query) {
   var results;
   connection.query(query, function (err, res) {
     console.log(res);
-    results = res;
-    // return results;
   })
   return results;
 }
