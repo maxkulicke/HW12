@@ -18,8 +18,6 @@ connection.connect((err) => {
 
 const cms = new CMS("test");
 
-// connect to the mysql server and sql database
-
 // function which prompts the user for what action they should take
 async function start() {
   try {
@@ -52,7 +50,7 @@ function choicePrompt(action) {
   const choice = inquirer.prompt({
     name: "choice",
     type: "list",
-    message: `What would you like to ${action}?`,
+    message: `What would you like to ${action.action}?`,
     choices: ["employee", "role", "department", "return home"]
   })
   return choice;
@@ -78,19 +76,23 @@ function actionChooser(action, choice) {
   }
 }
 
-function addRunner(choice) {
-  switch (choice) {
-    case "employee":
-      getEmployeeInfo();
-      break;
-    case "role":
-      getRoleInfo();
-      break;
-    case "department":
-      getDepartmentInfo();
-      break;
-    default:
-      break;
+async function addRunner(choice) {
+  try {
+    switch (choice) {
+      case "employee":
+        getEmployeeInfo();
+        break;
+      case "role":
+        getRoleInfo();
+        break;
+      case "department":
+        getDepartmentInfo();
+        break;
+      default:
+        break;
+    }
+  } catch (err) {
+    console.log(err);
   }
 }
 
@@ -110,12 +112,22 @@ function deleteRunner(choice) {
 function viewRunner(choice) {
   switch (choice) {
     case "employee":
-      let query = cms.viewAllEmployees();
-      querySender(query);
+      var query = cms.viewAllTemplate(`employees`);
+      connection.query(query, function (err, res) {
+        selector(`employee`, res);
+      });
       break;
     case "role":
+      var query = cms.viewAllTemplate(`roles`);
+      connection.query(query, function (err, res) {
+        selector(`role`, res);
+      });
       break;
     case "department":
+      var query = cms.viewAllTemplate(`departments`);
+      connection.query(query, function (err, res) {
+        selector(`department`, res);
+      });
       break;
     default:
       break;
@@ -136,7 +148,7 @@ function updateRunner(choice) {
 }
 
 function getEmployeeInfo() {
-  const employeeInfo = inquirer.prompt([
+  inquirer.prompt([
     {
       name: "first_name",
       type: "input",
@@ -154,31 +166,38 @@ function getEmployeeInfo() {
       choices: ["CEO", "CFO", "CTO", "Lead Sales Rep", "Sales Rep", "Head Counsel",
         "Counsel", "Legal Analyst", "Assistant CFO", "Lead Accountant", "Accountant",
         "Head of Human Resources", "Human Resources Representative"]
+    },
+    {
+      name: "manager_id",
+      type: "input",
+      message: "Enter this employees manager ID if known (hit enter if unknown)",
+    },
+
+  ]).then(function (answer) {
+    const roleID = cms.getRoleID(answer.role);
+
+    const employee = {
+      first_name: answer.first_name,
+      last_name: answer.last_name,
+      role_id: roleID,
+      manager_id: answer.manager_id
     }
-  ])
-
-  const roleID = cms.getRoleID(employeeInfo.role);
-
-  const employee = {
-    first_name: employeeInfo.first_name,
-    last_name: employeeInfo.last_name,
-    role: employeeInfo.role,
-    id: roleID
-  }
-  return employee;
+    console.log(cms.addEmployee(employee));
+    return employee;
+  })
 }
 
 function getRoleInfo() {
-  const roleInfo = inquirer.prompt([
+  inquirer.prompt([
     {
       name: "id",
       type: "input",
       message: "What is the ID number of the role?",
     },
     {
-      name: "name",
+      name: "title",
       type: "input",
-      message: "What is the name of the role?",
+      message: "What is the title of the role?",
     },
     {
       name: "salary",
@@ -186,20 +205,21 @@ function getRoleInfo() {
       message: "What is the salary for this role?",
     },
     {
-      name: "department",
+      name: "department_id",
       type: "list",
       message: "What department is this role in? ",
       choices: ["100 - Management", "200 - Sales", "300 - Legal", "400 - Finance", "500 - HR"]
     }
-  ])
-
-  const role = {
-    id: roleInfo.id,
-    name: roleInfo.name,
-    salary: roleInfo.salary,
-    department: roleInfo.department
-  }
-  return role;
+  ]).then(function (answer) {
+    const role = {
+      id: answer.id,
+      title: answer.title,
+      salary: answer.salary,
+      department_id: answer.department_id.substring(0, 3)
+    }
+    console.log(cms.addRole(role));
+    return role;
+  })
 }
 
 function getDepartmentInfo() {
@@ -214,65 +234,38 @@ function getDepartmentInfo() {
       type: "input",
       message: "What is the name of the department?",
     }
-  ])
+  ]).then(function (answer) {
+    const department = {
+      id: answer.id,
+      name: answer.name,
+    }
+    console.log(cms.addDept(department));
+    return department;
+  })
 
-  const department = {
-    id: departmentInfo.id,
-    name: departmentInfo.name
-  }
-  return department;
+
 }
 
-const querySender = (query) => {
+function selector(category, results) {
+  let namesArray = results.map(function nameGetter(object) {
+    return `${object.first_name} ${object.last_name}`;
+  })
+  console.log(namesArray);
+  const selection = inquirer.prompt(
+    {
+      name: "selection",
+      type: "list",
+      message: `Which ${category} would you like to select?`,
+      choices: namesArray
+    })
+}
+
+async function querySender(query) {
+  var results;
   connection.query(query, function (err, res) {
     console.log(res);
+    results = res;
+    // return results;
   })
+  return results;
 }
-
-// const createDB = () => {
-//   connection.query(
-//     "DROP DATABASE IF EXISTS employeesDB;
-
-//     CREATE DATABASE employeesDB;
-
-//     USE employeesDB;
-
-//     CREATE TABLE employees (
-//       id INT NOT NULL AUTO_INCREMENT,
-//       first_name VARCHAR(30) NOT NULL,
-//       last_name VARCHAR(30) NOT NULL,
-//       role_id INT NOT NULL,
-//       manager_id INT NULL,
-//       PRIMARY KEY (id)
-//     );
-
-//     CREATE TABLE roles (
-//       id INT NOT NULL,
-//       title VARCHAR(30) NOT NULL,
-//       salary DECIMAL(10,2) NOT NULL,
-//       world_score INT NOT NULL,
-//       PRIMARY KEY (id)
-//     );
-
-//     CREATE TABLE departments (
-//       id INT NOT NULL,
-//       name VARCHAR(30) NOT NULL,
-//       PRIMARY KEY (id)
-//     );"
-//   )
-// }
-
-// //from in class:
-// var mysql = require("mysql");
-// var inquirer = require("inquirer");
-// // create the connection information for the sql database
-// var connection = mysql.createConnection({
-//   host: "localhost",
-//   // Your port; if not 3306
-//   port: 3306,
-//   // Your username
-//   user: "root",
-//   // Your password
-//   password: "yourRootPassword",
-//   database: "greatBay_DB"
-// });

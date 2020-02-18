@@ -45,14 +45,22 @@ class CMS {
     return template;
   }
 
-  viewAllEmployees() {
-    const template = `SELECT * FROM employees;`;
+  viewAllTemplate(table) {
+    const template = `SELECT * FROM ${table};`;
     console.log(`CMS template returned: ${template}`);
     return template;
   }
 
-  addEmployee() {
+  addEmployee(employee) {
     console.log("called addEmployee!");
+    if (employee.manager_id) {
+      var template = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES 
+      (${ employee.first_name}, ${employee.last_name}, ${employee.role_id}, ${employee.manager_id});`;
+    } else {
+      var template = `INSERT INTO employees (first_name, last_name, role_id) VALUES 
+    (${ employee.first_name}, ${employee.last_name}, ${employee.role_id});`;
+    }
+    return template;
   }
 
   updateEmployee(employee) {
@@ -67,8 +75,11 @@ class CMS {
     console.log("called viewRole!");
   }
 
-  addRole() {
+  addRole(role) {
     console.log("called addRole!");
+    const template = `INSERT INTO roles(id, title, salary, department_id) VALUES
+      (${ role.id}, ${role.title}, ${role.salary}, ${role.department_id}); `
+    return template;
   }
 
   updateRole(role) {
@@ -83,8 +94,10 @@ class CMS {
     console.log("called viewDept!");
   }
 
-  addDept() {
+  addDept(dept) {
     console.log("called addDept!");
+    const template = `INSERT INTO departments(id, name) VALUES(${dept.id}, ${dept.name}); `
+    return template;
   }
 
   updateDept(dept) {
