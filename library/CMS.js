@@ -82,19 +82,25 @@ class CMS {
   }
 
   updateEmployee(update, employee) {
-    const template = `UPDATE employees SET ${update.field} = ${update.value} WHERE first_name = 
+    const fieldArray = update.field.split(":");
+    const template = `UPDATE employees SET ${fieldArray[0]} = ${update.value} WHERE first_name = 
     '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
+    // console.log(template);
     return template;
   }
 
   updateRole(update, role) {
-    const template = `UPDATE roles SET ${update.field} = ${update.value} WHERE 
+    const fieldArray = update.field.split(":");
+    const template = `UPDATE roles SET ${fieldArray[0]} = ${update.value} WHERE 
     title = '${role.title}' AND id = ${role.id};`;
+    // console.log(template);
     return template;  
   }
 
   updateDept(update, dept) {
-    const template = `UPDATE departments SET ${update.field} = ${update.value} WHERE name = '${dept.name}';`
+    const fieldArray = update.field.split(":");
+    const template = `UPDATE departments SET ${fieldArray[0]} = ${update.value} WHERE name = '${dept.name}';`
+    // console.log(template);
     return template;  
   }
 
