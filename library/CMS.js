@@ -43,18 +43,19 @@ class CMS {
   }
 
   viewEmployee(employee) {
+    // const template = `SELECT first_name, last_name, id, role_id, manager_id FROM employees WHERE id = ${employee.id};`
     const template = `SELECT first_name, last_name, id, role_id FROM employees WHERE first_name = 
-    ${employee.first_name} AND last_name = ${employee.last_name};`;
+    '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
     return template;
   }
 
   viewRole(role) {
-    const template = `SELECT name, id, salary, department_id FROM roles WHERE name = ${role.name};`;
+    const template = `SELECT title, id, salary, department_id FROM roles WHERE title = '${role.title}' AND id = ${role.id};`;
     return template;
   }
 
   viewDept(dept) {
-    const template = `SELECT name, id FROM departments WHERE name = ${dept.name};`;
+    const template = `SELECT name, id FROM departments WHERE name = '${dept.name}';`;
     return template;
   }
 
@@ -80,26 +81,31 @@ class CMS {
     return template;
   }
 
-  updateEmployee(employee) {
-    console.log("called updateEmployee!");
+  updateEmployee(update, employee) {
+    const template = `UPDATE employees SET ${update.field} = ${update.value} WHERE first_name = 
+    '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
+    return template;
   }
 
-  updateRole(role) {
-    console.log("called updateRole!");
+  updateRole(update, role) {
+    const template = `UPDATE roles SET ${update.field} = ${update.value} WHERE 
+    title = '${role.title}' AND id = ${role.id};`;
+    return template;  
   }
 
-  updateDept(dept) {
-    console.log("called updateDept!");
+  updateDept(update, dept) {
+    const template = `UPDATE departments SET ${update.field} = ${update.value} WHERE name = '${dept.name}';`
+    return template;  
   }
 
   deleteEmployee(employee) {
-    const template = `DELETE FROM employees WHERE first_name = 
-    ${employee.first_name} AND last_name = ${employee.last_name};`;
+    const template = `DELETE FROM employees WHERE first_name = ${employee.first_name} AND 
+    last_name = ${employee.last_name} AND id = ${employee.id};`;
     return template;
   }
 
   deleteRole(role) {
-    const template = `DELETE FROM roles WHERE name = ${role.name};`;
+    const template = `DELETE FROM roles WHERE title = ${role.title} AND id = ${role.id};`;
     return template;
   }
 

@@ -12,7 +12,6 @@ const connection = mysql.createConnection({
 connection.connect((err) => {
   if (err) throw err;
   console.log('Connected!');
-  console.log(cms.name);
   start();
 });
 
@@ -110,8 +109,8 @@ function getEmployeeInfo() {
     }
     const query = cms.addEmployee(employee);
     console.log(`query: ${query}`);
-    // querySender(query, "add");
-    returnHome();
+    // querySender(query, "add", "employee");
+    // returnHome();
     return;
   })
 }
@@ -148,8 +147,8 @@ function getRoleInfo() {
     }
     const query = cms.addRole(role);
     console.log(`query: ${query}`);
-    // querySender(query, "add");
-    returnHome();
+    // querySender(query, "add", "role");
+    // returnHome();
     return;
   })
 }
@@ -173,8 +172,8 @@ function getDepartmentInfo() {
     }
     const query = cms.addDept(department);
     console.log(`query: ${query}`);
-    // querySender(query, "add");
-    returnHome();
+    // querySender(query, "add", "department");
+    // returnHome();
     return;
   })
 }
@@ -240,12 +239,13 @@ function deleteRunner(choice) {
             const names = selection.selection.split(" ");
             const employee = {
               first_name: names[0],
-              last_name: names[1]
+              last_name: names[1],
+              id: parseInt(names[3])
             };
             const query = cms.deleteEmployee(employee);
             console.log(`query: ${query}`);
-            // querySender(query, "delete");
-            returnHome();
+            // querySender(query, "delete", "employee");
+            // returnHome();
             return;
           });
           break;
@@ -253,11 +253,26 @@ function deleteRunner(choice) {
           var allQuery = cms.viewAllTemplate(`roles`);
           connection.query(allQuery, async function (err, res) {
             var selection = await selector(`role`, res);
-            const role = { name: selection.selection };
+            const names = selection.selection.split(" ");
+            var titleString = ``;
+            var idString = ``;
+            for (var i = 0; i < names.length; i++) {
+              if (names[i + 1] === "id:") {
+                idString += names[i + 2]
+                titleString += `${names[i].substring(0, names[i].length)}`
+                i = names.length;
+              } else {
+                titleString += `${names[i].substring(0, names[i].length)} `
+              }
+            }
+            const role = {
+              title: titleString,
+              id: idString
+            };
             const query = cms.deleteRole(role);
             console.log(`query: ${query}`);
-            // querySender(query, "delete");
-            returnHome();
+            // querySender(query, "delete", "role");
+            // returnHome();
             return;
           });
           break;
@@ -268,8 +283,8 @@ function deleteRunner(choice) {
             const dept = { name: selection.selection };
             const query = cms.deleteDept(dept);
             console.log(`query: ${query}`);
-            // querySender(query, "delete");
-            returnHome();
+            // querySender(query, "delete", "department");
+            // returnHome();
             return;
           });
           break;
@@ -294,12 +309,14 @@ async function viewRunner(choice) {
           const names = selection.selection.split(" ");
           const employee = {
             first_name: names[0],
-            last_name: names[1]
+            last_name: names[1],
+            id: parseInt(names[3]),
+            manager_id: parseInt(names[6])
           };
           const query = cms.viewEmployee(employee);
           console.log(`query: ${query}`);
-          // querySender(query, "view");
-          returnHome();
+          querySender(query, "view", "employee");
+          // returnHome();
           return;
         });
         break;
@@ -309,11 +326,26 @@ async function viewRunner(choice) {
         // console.log(`viewRunner query: ${query}`);
         connection.query(allQuery, async function (err, res) {
           var selection = await selector(`role`, res);
-          const role = { name: selection.selection };
+          const names = selection.selection.split(" ");
+          var titleString = ``;
+          var idString = ``;
+          for (var i = 0; i < names.length; i++) {
+            if (names[i + 1] === "id:") {
+              idString += names[i + 2]
+              titleString += `${names[i].substring(0, names[i].length)}`
+              i = names.length;
+            } else {
+              titleString += `${names[i].substring(0, names[i].length)} `
+            }
+          }
+          const role = {
+            title: titleString,
+            id: idString
+          };
           const query = cms.viewRole(role);
           console.log(`query: ${query}`);
-          // querySender(query, "view");
-          returnHome();
+          querySender(query, "view", "role");
+          // returnHome();
           return;
         });
         break;
@@ -323,11 +355,26 @@ async function viewRunner(choice) {
         // console.log(`viewRunner query: ${query}`);
         connection.query(allQuery, async function (err, res) {
           var selection = await selector(`department`, res);
-          const dept = { name: selection.selection };
+          const names = selection.selection.split(" ");
+          var nameString = ``;
+          var idString = ``;
+          for (var i = 0; i < names.length; i++) {
+            if (names[i + 1] === "id:") {
+              idString += names[i + 2]
+              nameString += `${names[i].substring(0, names[i].length)}`
+              i = names.length;
+            } else {
+              nameString += `${names[i].substring(0, names[i].length)} `
+            }
+          }
+          const dept = {
+            name: nameString,
+            id: idString
+          };
           const query = cms.viewDept(dept);
           console.log(`query: ${query}`);
-          // querySender(query, "view");
-          returnHome();
+          querySender(query, "view", "department");
+          // returnHome();
           return;
         });
         break;
@@ -339,68 +386,156 @@ async function viewRunner(choice) {
   }
 }
 
-// async function lister(query, category) {
-//       var selectionQuery = ``;
-//       switch (category) {
-//         case "employee":
-//           // var query = cms.viewAllTemplate(`employees`);
-//           await connection.query(query, async function (err, res) {
-//             var selection = await selector(`employee`, res);
-//             const names = selection.selection.split(" ");
-//             const employee = {
-//               first_name: names[0],
-//               last_name: names[1]
-//             };
-//             selectionQuery = cms.viewEmployee(employee);
-//             console.log(`query: ${selectionQuery}`);
-//             // querySender(selectionQuery, "view");
-//             return selectionQuery;
-//           });
-//           break;
-//         case "role":
-//           // var query = cms.viewAllTemplate(`roles`);
-//           await connection.query(query, async function (err, res) {
-//             var selection = await selector(`role`, res);
-//             const role = { name: selection.selection };
-//             selectionQuery = cms.viewRole(role);
-//             console.log(`query: ${selectionQuery}`);
-//             // querySender(selectionQuery, "view");
-//             return selectionQuery;
-//           });
-//           break;
-//         case "department":
-//           // var query = cms.viewAllTemplate(`departments`);
-//           await connection.query(query, async function (err, res) {
-//             var selection = await selector(`department`, res);
-//             const dept = { name: selection.selection };
-//             selectionQuery = cms.viewDept(dept);
-//             console.log(`query: ${selectionQuery}`);
-//             // querySender(selectionQuery, "view");
-//             return selectionQuery;
-//           });
-//           break;
-//         default:
-//           break;
-//       }
-//       return selectionQuery;
-//     }
-
 function updateRunner(choice) {
   switch (choice) {
     case "employee":
-
+      var allQuery = cms.viewAllTemplate(`employees`);
+      // var query = await lister(allQuery, choice);
+      // console.log(`viewRunner query: ${query}`);
+      connection.query(allQuery, async function (err, res) {
+        var selection = await selector(`employee`, res);
+        const names = selection.selection.split(" ");
+        const employee = {
+          first_name: names[0],
+          last_name: names[1],
+          id: parseInt(names[3]),
+          manager_id: names[6]
+        };
+        const query = cms.viewEmployee(employee);
+        console.log(`query: ${query}`);
+        querySender(query, "update view", "employee");
+        // returnHome();
+        return;
+      });
       break;
     case "role":
+      var allQuery = cms.viewAllTemplate(`roles`);
+      connection.query(allQuery, async function (err, res) {
+        var selection = await selector(`role`, res);
+        const names = selection.selection.split(" ");
+        var titleString = ``;
+        var idString = ``;
+        for (var i = 0; i < names.length; i++) {
+          if (names[i + 1] === "id:") {
+            idString += names[i + 2]
+            titleString += `${names[i].substring(0, names[i].length)}`
+            i = names.length;
+          } else {
+            titleString += `${names[i].substring(0, names[i].length)} `
+          }
+        }
+        const role = {
+          title: titleString,
+          id: idString
+        };
+        const query = cms.viewRole(role);
+        console.log(`query: ${query}`);
+        querySender(query, "update view", "role");
+        // returnHome();
+        return;
+      });
       break;
     case "department":
+      var allQuery = cms.viewAllTemplate(`departments`);
+      // var query = await lister(allQuery, choice);
+      // console.log(`viewRunner query: ${query}`);
+      connection.query(allQuery, async function (err, res) {
+        var selection = await selector(`department`, res);
+        const names = selection.selection.split(" ");
+        var nameString = ``;
+        var idString = ``;
+        for (var i = 0; i < names.length; i++) {
+          if (names[i + 1] === "id:") {
+            idString += names[i + 2]
+            nameString += `${names[i].substring(0, names[i].length)}`
+            i = names.length;
+          } else {
+            nameString += `${names[i].substring(0, names[i].length)} `
+          }
+        }
+        const dept = {
+          name: nameString,
+          id: idString
+        };
+        const query = cms.viewDept(dept);
+        console.log(`query: ${query}`);
+        querySender(query, "update view", "department");
+        // returnHome();
+        return;
+      });
       break;
     default:
       break;
   }
 }
 
-function updateField() {
-
+function updateField(objectArray, category) {
+  var object = objectArray[0];
+  var fields = [];
+  switch (category) {
+    case "employee":
+      fields = [`first_name: ${object.first_name}`, `last_name: ${object.last_name}`,
+      `role_id: ${object.role_id}`, `manager_id: ${object.manager_id}`];
+      break;
+    case "role":
+      fields = [`title: ${object.title}`, `id: ${object.id}`,
+      `salary: ${object.salary}`, `department_id: ${object.department_id}`]
+      break;
+    case "department":
+      fields = [`name: ${object.name}`, `id: ${object.id}`]
+      break;
+    default:
+      break
+  }
+  console.log(fields);
+  inquirer.prompt([
+    {
+      name: "field",
+      type: "list",
+      message: "Which field would you like to update?",
+      choices: fields
+    },
+    {
+      name: "value",
+      type: "input",
+      message: "What is the new entry for this field?",
+    },
+    {
+      name: "confirm",
+      type: "list",
+      message: "Do you confirm this change? This change will be permanent...",
+      choices: ["yes", "no"]
+    },
+    {
+      name: "updateAgain",
+      type: "list",
+      message: `Would you like to update another field for this ${category}?`,
+      choices: ["yes", "no"]
+    }
+  ]).then(function (answer) {
+    console.log(answer);
+    if (answer.updateAgain === "yes") {
+      updateField(objectArray, category);
+    } else {
+      switch (category) {
+        case "employee":
+          var query = cms.updateEmployee(answer, object);
+          querySender(query, "update", "employee")
+          break;
+        case "role":
+          var query = cms.updateRole(answer, object);
+          querySender(query, "update", "role")
+          break;
+        case "department":
+          var query = cms.updateDept(answer, object);
+          querySender(query, "update", "department")
+          break;
+        default:
+          break
+      }
+      return;
+    }
+  });
 }
 
 async function selector(category, results) {
@@ -408,24 +543,24 @@ async function selector(category, results) {
   switch (category) {
     case "employee":
       choicesArray = results.map(function nameGetter(object) {
-        return `${object.first_name} ${object.last_name}`;
+        return `${object.first_name} ${object.last_name} id: ${object.id} manager id: ${object.manager_id}`;
       })
       break;
     case "department":
       choicesArray = results.map(function roleGetter(object) {
-        return `${object.name}`;
+        return `${object.name} id: ${object.id}`;
       })
       break;
     case "role":
       choicesArray = results.map(function roleGetter(object) {
-        return `${object.title}`;
+        return `${object.title} id: ${object.id} salary: ${object.salary} department id: ${object.department_id}`;
       })
       break;
     default:
       break;
   }
 
-  console.log(`choices array: ${choicesArray}`);
+  // console.log(`choices array: ${choicesArray}`);
   const selection = await inquirer.prompt(
     {
       name: "selection",
@@ -436,35 +571,43 @@ async function selector(category, results) {
   return selection;
 }
 
-async function querySender(query, type) {
+function querySender(query, type, category) {
+  console.log(`type: ${type} & query: ${query}`);
   switch (type) {
     case "add":
-      connection.query(query, function (err, res) {
-        console.log(res);
-        returnHome();
-        return;
-      });
+      // connection.query(query, function (err, res) {
+      //   console.log(res);
+      returnHome();
+      //   return;
+      // });
       break;
     case "delete":
-      connection.query(query, function (err, res) {
-        console.log(res);
-        returnHome();
-        return;
-      });
+      // connection.query(query, function (err, res) {
+      //   console.log(res);
+      returnHome();
+      //   return;
+      // });
       break;
     case "view":
       connection.query(query, function (err, res) {
         console.log(res);
         returnHome();
-        return;
+        // return;
+      });
+      break;
+    case "update view":
+      connection.query(query, function (err, res) {
+        console.log(res);
+        updateField(res, category);
+        //   return;
       });
       break;
     case "update":
-      connection.query(query, function (err, res) {
-        console.log(res);
-        returnHome();
-        return;
-      });
+      // connection.query(query, function (err, res) {
+      //   console.log(res);
+      returnHome();
+      //   return;
+      // });
       break;
     default:
       break;
