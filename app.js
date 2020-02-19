@@ -15,7 +15,7 @@ connection.connect((err) => {
   start();
 });
 
-const cms = new CMS("test");
+const cms = new CMS("Max's CMS");
 
 async function start() {
   try {
@@ -24,11 +24,11 @@ async function start() {
       connection.end();
       return;
     }
-    const choice = await choicePrompt(action);
-    if (choice.choice === "return home") {
+    const category = await categoryPrompt(action);
+    if (category.category === "return home") {
       start();
     } else {
-      actionChooser(action.action, choice.choice);
+      actionChooser(action.action, category.category);
     }
   } catch (err) {
     console.log(err);
@@ -62,14 +62,125 @@ function actionPrompt() {
   return action;
 }
 
-function choicePrompt(action) {
-  const choice = inquirer.prompt({
-    name: "choice",
+function categoryPrompt(action) {
+  const category = inquirer.prompt({
+    name: "category",
     type: "list",
     message: `What would you like to ${action.action}?`,
     choices: ["employee", "role", "department", "return home"]
   })
-  return choice;
+  return category;
+}
+
+function actionChooser(action, category) {
+  switch (action) {
+    case "view":
+      viewRunner(category);
+      break;
+    case "update":
+      updateRunner(category);
+      break;
+    case "add":
+      addRunner(category);
+      break;
+    case "delete":
+      deleteRunner(category);
+      break;
+    default:
+      break;
+  }
+}
+
+// does this need to be async?
+async function addRunner(category) {
+  try {
+    switch (category) {
+      case "employee":
+        getEmployeeInfo();
+        break;
+      case "role":
+        getRoleInfo();
+        break;
+      case "department":
+        getDepartmentInfo();
+        break;
+      default:
+        break;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function deleteRunner(category) {
+  inquirer.prompt([
+    {
+      name: "confirm",
+      type: "list",
+      message: `Are you sure you want to delete one of your ${category}s? This action will be permanent.`,
+      choices: ["yes", "no"]
+    }
+  ]).then(function (answer) {
+    if (answer.confirm === "no") {
+      start();
+      return;
+    } else {
+      switch (category) {
+        case "employee":
+          var allQuery = cms.viewAllTemplate(`employees`);
+          selectObjectMaker(category, allQuery, "delete");
+          break;
+        case "role":
+          var allQuery = cms.viewAllTemplate(`roles`);
+          selectObjectMaker(category, allQuery, "delete");
+          break;
+        case "department":
+          var allQuery = cms.viewAllTemplate(`departments`);
+          selectObjectMaker(category, allQuery, "delete");
+          break;
+        default:
+          break;
+      }
+    }
+  })
+}
+
+function viewRunner(category) {
+    switch (category) {
+      case "employee":
+        var allQuery = cms.viewAllTemplate(`employees`);
+        selectObjectMaker(category, allQuery, "view");
+        break;
+      case "role":
+        var allQuery = cms.viewAllTemplate(`roles`);
+        selectObjectMaker(category, allQuery, "view");
+        break;
+      case "department":
+        var allQuery = cms.viewAllTemplate(`departments`);
+        selectObjectMaker(category, allQuery, "view");
+        break;
+      default:
+        break;
+    }
+}
+
+function updateRunner(category) {
+  switch (category) {
+    case "employee":
+      var allQuery = cms.viewAllTemplate(`employees`);
+      selectObjectMaker(category, allQuery, "update view");
+      break;
+    case "role":
+      var allQuery = cms.viewAllTemplate(`roles`);
+      selectObjectMaker(category, allQuery, "update view");
+      break;
+    case "department":
+      var allQuery = cms.viewAllTemplate(`departments`);
+      selectObjectMaker(category, allQuery, "update view");
+      break;
+    default:
+      break;
+  }
 }
 
 function getEmployeeInfo() {
@@ -107,11 +218,7 @@ function getEmployeeInfo() {
       role_id: roleID,
       manager_id: answer.manager_id
     }
-    const query = cms.addEmployee(employee);
-    console.log(`query: ${query}`);
-    // querySender(query, "add", "employee");
-    // returnHome();
-    return;
+    queryMaker(employee, "add", "employee");
   })
 }
 
@@ -145,11 +252,7 @@ function getRoleInfo() {
       salary: answer.salary,
       department_id: answer.department_id.substring(0, 3)
     }
-    const query = cms.addRole(role);
-    console.log(`query: ${query}`);
-    // querySender(query, "add", "role");
-    // returnHome();
-    return;
+    queryMaker(role, "add", "role");
   })
 }
 
@@ -170,126 +273,13 @@ function getDepartmentInfo() {
       id: answer.id,
       name: answer.name,
     }
-    const query = cms.addDept(department);
-    console.log(`query: ${query}`);
-    // querySender(query, "add", "department");
-    // returnHome();
-    return;
+    queryMaker(department, "add", "department");
+
   })
 }
 
-function actionChooser(action, choice) {
-  console.log(`${action} & ${choice}`);
-  switch (action) {
-    case "view":
-      viewRunner(choice);
-      break;
-    case "update":
-      updateRunner(choice);
-      break;
-    case "add":
-      addRunner(choice);
-      break;
-    case "delete":
-      deleteRunner(choice);
-      break;
-    default:
-      break;
-  }
-}
-
-async function addRunner(choice) {
-  try {
-    switch (choice) {
-      case "employee":
-        getEmployeeInfo();
-        break;
-      case "role":
-        getRoleInfo();
-        break;
-      case "department":
-        getDepartmentInfo();
-        break;
-      default:
-        break;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-function queryMaker(object, type, choice) {
-  var query = ``;
-  switch (choice) {
-    case "employee":
-
-      switch (type) {
-        case "add":
-          query = cms.addEmployee(object);
-          break;
-        case "update view":
-          query = cms.viewEmployee(object);
-          break;
-        case "delete":
-          query = cms.deleteEmployee(object);
-          break;
-        case "view":
-          query = cms.viewEmployee(object);
-          break
-        default:
-          break;
-      }
-
-      break;
-    case "role":
-
-      switch (type) {
-        case "add":
-          query = cms.addRole(object);
-          break;
-        case "update view":
-          query = cms.viewRole(object);
-          break;
-        case "delete":
-          query = cms.deleteRole(object);
-          break;
-        case "view":
-          query = cms.viewRole(object);
-          break
-        default:
-          break;
-      }
-
-      break;
-    case "department":
-
-      switch (type) {
-        case "add":
-          query = cms.addDept(object);
-          break;
-        case "update view":
-          query = cms.viewDept(object);
-          break;
-        case "delete":
-          query = cms.deleteDept(object);
-          break;
-        case "view":
-          query = cms.viewDept(object);
-          break
-        default:
-          break;
-      }
-
-      break;
-    default:
-      break;
-  }
-  console.log(`query: ${query}, type: ${type}, choice: ${choice}`);
-  querySender(query, type, choice);
-}
-
-function selectObjectMaker(choice, allQuery, type) {
-  switch (choice) {
+function selectObjectMaker(category, allQuery, action) {
+  switch (category) {
     case "employee":
       connection.query(allQuery, async function (err, res) {
         var selection = await selector(`employee`, res);
@@ -301,9 +291,7 @@ function selectObjectMaker(choice, allQuery, type) {
           id: parseInt(names[3]),
           manager_id: names[6]
         };
-
-        // query = cms.viewEmployee(employee);
-        queryMaker(employee, type, choice);
+        queryMaker(employee, action, category);
       });
       break;
     case "role":
@@ -326,11 +314,7 @@ function selectObjectMaker(choice, allQuery, type) {
           title: titleString,
           id: idString
         };
-        // query = cms.viewRole(role);
-        queryMaker(role, type, choice);
-        // send query and type to:  
-
-
+        queryMaker(role, action, category);
       });
       break;
     case "department":
@@ -353,288 +337,109 @@ function selectObjectMaker(choice, allQuery, type) {
           name: nameString,
           id: idString
         };
-        queryMaker(dept, type, choice);
-        // query = cms.viewDept(dept);
-        // send query and type to:  
-
+        queryMaker(dept, action, category);
       });
       break;
     default:
       break;
   }
-  // console.log(query, type, choice);
-  // querySender(query, "update view", choice);
 }
 
-
-function deleteRunner(choice) {
-  inquirer.prompt([
-    {
-      name: "confirm",
-      type: "list",
-      message: `Are you sure you want to delete one of your ${choice}s? This action will be permanent.`,
-      choices: ["yes", "no"]
-    }
-  ]).then(function (answer) {
-    if (answer.confirm === "no") {
-      start();
-      return;
-    } else {
-      switch (choice) {
-        case "employee":
-          var allQuery = cms.viewAllTemplate(`employees`);
-          selectObjectMaker(choice, allQuery, "delete");
-
-          // connection.query(allQuery, async function (err, res) {
-          //   var selection = await selector(`employee`, res);
-          //   const names = selection.selection.split(" ");
-          //   const employee = {
-          //     first_name: names[0],
-          //     last_name: names[1],
-          //     id: parseInt(names[3])
-          //   };
-          //   const query = cms.deleteEmployee(employee);
-          //   console.log(`query: ${query}`);
-          //   // querySender(query, "delete", "employee");
-          //   // returnHome();
-          //   return;
-          // });
-          break;
-        case "role":
-          var allQuery = cms.viewAllTemplate(`roles`);
-          selectObjectMaker(choice, allQuery, "delete");
-
-          // connection.query(allQuery, async function (err, res) {
-          //   var selection = await selector(`role`, res);
-          //   const names = selection.selection.split(" ");
-          //   var titleString = ``;
-          //   var idString = ``;
-          //   for (var i = 0; i < names.length; i++) {
-          //     if (names[i + 1] === "id:") {
-          //       idString += names[i + 2]
-          //       titleString += `${names[i].substring(0, names[i].length)}`
-          //       i = names.length;
-          //     } else {
-          //       titleString += `${names[i].substring(0, names[i].length)} `
-          //     }
-          //   }
-          //   const role = {
-          //     title: titleString,
-          //     id: idString
-          //   };
-          //   const query = cms.deleteRole(role);
-          //   console.log(`query: ${query}`);
-          //   // querySender(query, "delete", "role");
-          //   // returnHome();
-          //   return;
-          // });
-          break;
-        case "department":
-          var allQuery = cms.viewAllTemplate(`departments`);
-          selectObjectMaker(choice, allQuery, "delete");
-
-          // connection.query(allQuery, async function (err, res) {
-          //   var selection = await selector(`department`, res);
-          //   const dept = { name: selection.selection };
-          //   const query = cms.deleteDept(dept);
-          //   console.log(`query: ${query}`);
-          //   // querySender(query, "delete", "department");
-          //   // returnHome();
-          //   return;
-          // });
-          break;
-        default:
-          break;
-      }
-      // var query = lister(allQuery, choice);
-      // console.log(`deleteRunner query: ${query}`);
-    }
-  })
-}
-
-function viewRunner(choice) {
-    switch (choice) {
-      case "employee":
-        var allQuery = cms.viewAllTemplate(`employees`);
-        selectObjectMaker(choice, allQuery, "view");
-        // // var query = await lister(allQuery, choice);
-        // // console.log(`viewRunner query: ${query}`);
-        // connection.query(allQuery, async function (err, res) {
-        //   var selection = await selector(`employee`, res);
-        //   const names = selection.selection.split(" ");
-        //   const employee = {
-        //     first_name: names[0],
-        //     last_name: names[1],
-        //     id: parseInt(names[3]),
-        //     manager_id: parseInt(names[6])
-        //   };
-        //   const query = cms.viewEmployee(employee);
-        //   console.log(`query: ${query}`);
-        //   querySender(query, "view", "employee");
-        //   // returnHome();
-        //   return;
-        // });
-        break;
-      case "role":
-        var allQuery = cms.viewAllTemplate(`roles`);
-        selectObjectMaker(choice, allQuery, "view");
-        // // var query = await lister(allQuery, choice);
-        // // console.log(`viewRunner query: ${query}`);
-        // connection.query(allQuery, async function (err, res) {
-        //   var selection = await selector(`role`, res);
-        //   const names = selection.selection.split(" ");
-        //   var titleString = ``;
-        //   var idString = ``;
-        //   for (var i = 0; i < names.length; i++) {
-        //     if (names[i + 1] === "id:") {
-        //       idString += names[i + 2]
-        //       titleString += `${names[i].substring(0, names[i].length)}`
-        //       i = names.length;
-        //     } else {
-        //       titleString += `${names[i].substring(0, names[i].length)} `
-        //     }
-        //   }
-        //   const role = {
-        //     title: titleString,
-        //     id: idString
-        //   };
-        //   const query = cms.viewRole(role);
-        //   console.log(`query: ${query}`);
-        //   querySender(query, "view", "role");
-        //   // returnHome();
-        //   return;
-        // });
-        break;
-      case "department":
-        var allQuery = cms.viewAllTemplate(`departments`);
-        selectObjectMaker(choice, allQuery, "view");
-        // // var query = await lister(allQuery, choice);
-        // // console.log(`viewRunner query: ${query}`);
-        // connection.query(allQuery, async function (err, res) {
-        //   var selection = await selector(`department`, res);
-        //   const names = selection.selection.split(" ");
-        //   var nameString = ``;
-        //   var idString = ``;
-        //   for (var i = 0; i < names.length; i++) {
-        //     if (names[i + 1] === "id:") {
-        //       idString += names[i + 2]
-        //       nameString += `${names[i].substring(0, names[i].length)}`
-        //       i = names.length;
-        //     } else {
-        //       nameString += `${names[i].substring(0, names[i].length)} `
-        //     }
-        //   }
-        //   const dept = {
-        //     name: nameString,
-        //     id: idString
-        //   };
-        //   const query = cms.viewDept(dept);
-        //   console.log(`query: ${query}`);
-        //   querySender(query, "view", "department");
-        //   // returnHome();
-        //   return;
-        // });
-        break;
-      default:
-        break;
-    }
-}
-
-function updateRunner(choice) {
-  switch (choice) {
+async function selector(category, results) {
+  var choicesArray = [];
+  switch (category) {
     case "employee":
-      var allQuery = cms.viewAllTemplate(`employees`);
-      selectObjectMaker(choice, allQuery, "update view");
-      // var query = await lister(allQuery, choice);
-      // console.log(`viewRunner query: ${query}`);
-
-      //
-      // connection.query(allQuery, async function (err, res) {
-      //   var selection = await selector(`employee`, res);
-      //   const names = selection.selection.split(" ");
-      //   const employee = {
-      //     first_name: names[0],
-      //     last_name: names[1],
-      //     id: parseInt(names[3]),
-      //     manager_id: names[6]
-      //   };
-      //   //
-
-      //   const query = cms.viewEmployee(employee);
-      //   console.log(`query: ${query}`);
-      //   querySender(query, "update view", "employee");
-      //   // returnHome();
-      //   return;
-      // });
-      break;
-    case "role":
-      var allQuery = cms.viewAllTemplate(`roles`);
-      selectObjectMaker(choice, allQuery, "update view");
-      //
-      // connection.query(allQuery, async function (err, res) {
-      //   var selection = await selector(`role`, res);
-      //   const names = selection.selection.split(" ");
-      //   var titleString = ``;
-      //   var idString = ``;
-      //   for (var i = 0; i < names.length; i++) {
-      //     if (names[i + 1] === "id:") {
-      //       idString += names[i + 2]
-      //       titleString += `${names[i].substring(0, names[i].length)}`
-      //       i = names.length;
-      //     } else {
-      //       titleString += `${names[i].substring(0, names[i].length)} `
-      //     }
-      //   }
-      //   const role = {
-      //     title: titleString,
-      //     id: idString
-      //   };
-      //   //
-
-      //   const query = cms.viewRole(role);
-      //   console.log(`query: ${query}`);
-      //   querySender(query, "update view", "role");
-      //   // returnHome();
-      //   return;
-      // });
+      choicesArray = results.map(function nameGetter(object) {
+        return `${object.first_name} ${object.last_name} id: ${object.id} manager id: ${object.manager_id}`;
+      })
       break;
     case "department":
-      var allQuery = cms.viewAllTemplate(`departments`);
-      selectObjectMaker(choice, allQuery, "update view");
-      // var query = await lister(allQuery, choice);
-      // console.log(`viewRunner query: ${query}`);
-
-      //
-      // connection.query(allQuery, async function (err, res) {
-      //   var selection = await selector(`department`, res);
-      //   const names = selection.selection.split(" ");
-      //   var nameString = ``;
-      //   var idString = ``;
-      //   for (var i = 0; i < names.length; i++) {
-      //     if (names[i + 1] === "id:") {
-      //       idString += names[i + 2]
-      //       nameString += `${names[i].substring(0, names[i].length)}`
-      //       i = names.length;
-      //     } else {
-      //       nameString += `${names[i].substring(0, names[i].length)} `
-      //     }
-      //   }
-      //   const dept = {
-      //     name: nameString,
-      //     id: idString
-      //   };
-      //   //
-
-      //   const query = cms.viewDept(dept);
-      //   console.log(`query: ${query}`);
-      //   querySender(query, "update view", "department");
-      //   // returnHome();
-      //   return;
-      // });
+      choicesArray = results.map(function roleGetter(object) {
+        return `${object.name} id: ${object.id}`;
+      })
+      break;
+    case "role":
+      choicesArray = results.map(function roleGetter(object) {
+        return `${object.title} id: ${object.id} salary: ${object.salary} department id: ${object.department_id}`;
+      })
       break;
     default:
       break;
   }
+
+  const selection = await inquirer.prompt(
+    {
+      name: "selection",
+      type: "list",
+      message: `Which ${category} would you like to select?`,
+      choices: choicesArray
+    });
+  return selection;
+}
+
+function queryMaker(object, action, category) {
+  var query = ``;
+  switch (category) {
+    case "employee":
+      switch (action) {
+        case "add":
+          query = cms.addEmployee(object);
+          break;
+        case "update view":
+          query = cms.viewEmployee(object);
+          break;
+        case "delete":
+          query = cms.deleteEmployee(object);
+          break;
+        case "view":
+          query = cms.viewEmployee(object);
+          break
+        default:
+          break;
+      }
+      break;
+
+    case "role":
+      switch (action) {
+        case "add":
+          query = cms.addRole(object);
+          break;
+        case "update view":
+          query = cms.viewRole(object);
+          break;
+        case "delete":
+          query = cms.deleteRole(object);
+          break;
+        case "view":
+          query = cms.viewRole(object);
+          break
+        default:
+          break;
+      }
+      break;
+
+    case "department":
+      switch (action) {
+        case "add":
+          query = cms.addDept(object);
+          break;
+        case "update view":
+          query = cms.viewDept(object);
+          break;
+        case "delete":
+          query = cms.deleteDept(object);
+          break;
+        case "view":
+          query = cms.viewDept(object);
+          break
+        default:
+          break;
+      }
+      break;
+    default:
+      break;
+  }
+  querySender(query, action, category);
 }
 
 function updateField(objectArray, category) {
@@ -655,7 +460,6 @@ function updateField(objectArray, category) {
     default:
       break
   }
-  console.log(fields);
   inquirer.prompt([
     {
       name: "field",
@@ -681,10 +485,6 @@ function updateField(objectArray, category) {
       choices: ["yes", "no"]
     }
   ]).then(function (answer) {
-    console.log(answer);
-    // if (answer.updateAgain === "yes") {
-    //   updateField(objectArray, category);
-    // }
     switch (category) {
       case "employee":
         var query = cms.updateEmployee(answer, object);
@@ -709,43 +509,11 @@ function updateField(objectArray, category) {
   });
 }
 
-async function selector(category, results) {
-  var choicesArray = [];
-  switch (category) {
-    case "employee":
-      choicesArray = results.map(function nameGetter(object) {
-        return `${object.first_name} ${object.last_name} id: ${object.id} manager id: ${object.manager_id}`;
-      })
-      break;
-    case "department":
-      choicesArray = results.map(function roleGetter(object) {
-        return `${object.name} id: ${object.id}`;
-      })
-      break;
-    case "role":
-      choicesArray = results.map(function roleGetter(object) {
-        return `${object.title} id: ${object.id} salary: ${object.salary} department id: ${object.department_id}`;
-      })
-      break;
-    default:
-      break;
-  }
-
-  // console.log(`choices array: ${choicesArray}`);
-  const selection = await inquirer.prompt(
-    {
-      name: "selection",
-      type: "list",
-      message: `Which ${category} would you like to select?`,
-      choices: choicesArray
-    });
-  return selection;
-}
-
 // TODO: query confirmation function
-function querySender(query, type, category) {
-  // console.log(`type: ${type} & query: ${query}`);
-  switch (type) {
+function querySender(query, action, category) {
+  console.log(`querySender sending query: ${query}`);
+  // console.log(`action: ${action} & query: ${query}`);
+  switch (action) {
     case "add":
       // connection.query(query, function (err, res) {
       //   console.log(res);
@@ -768,12 +536,14 @@ function querySender(query, type, category) {
       connection.query(query, function (err, res) {
         console.log(res);
         returnHome();
+        console.log(`View confirmed!`)
         // return;
       });
       break;
     case "update view":
       connection.query(query, function (err, res) {
         console.log(res);
+        console.log(`Update View confirmed!`)
         updateField(res, category);
         //   return;
       });

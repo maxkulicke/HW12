@@ -1,6 +1,6 @@
 class CMS {
 
-  constructor(name) {
+  constructor() {
     this.name = name;
   }
 
@@ -43,7 +43,6 @@ class CMS {
   }
 
   viewEmployee(employee) {
-    // const template = `SELECT first_name, last_name, id, role_id, manager_id FROM employees WHERE id = ${employee.id};`
     const template = `SELECT first_name, last_name, id, role_id FROM employees WHERE first_name = 
     '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
     return template;
@@ -85,7 +84,6 @@ class CMS {
     const fieldArray = update.field.split(":");
     const template = `UPDATE employees SET ${fieldArray[0]} = ${update.value} WHERE first_name = 
     '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
-    // console.log(template);
     return template;
   }
 
@@ -93,14 +91,12 @@ class CMS {
     const fieldArray = update.field.split(":");
     const template = `UPDATE roles SET ${fieldArray[0]} = ${update.value} WHERE 
     title = '${role.title}' AND id = ${role.id};`;
-    // console.log(template);
     return template;  
   }
 
   updateDept(update, dept) {
     const fieldArray = update.field.split(":");
     const template = `UPDATE departments SET ${fieldArray[0]} = ${update.value} WHERE name = '${dept.name}';`
-    // console.log(template);
     return template;  
   }
 
@@ -119,7 +115,6 @@ class CMS {
     const template = `DELETE FROM departments WHERE name = ${dept.name};`;
     return template;
   }
-
 }
 
 module.exports = CMS;
