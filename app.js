@@ -17,7 +17,7 @@ connection.connect((err) => {
   start();
 });
 
-const cms = new CMS("Max's CMS");
+const cms = new CMS("Max's CMS", "employeesDB");
 
 
 async function start() {
@@ -529,56 +529,59 @@ function updateField(objectArray, category) {
 
 
 function querySender(query, action, category) {
-  if (action === "add" || action === "delete" || action === "update") {
-    inquirer.prompt([
-      {
-        name: "confirm",
-        type: "list",
-        message: `Do you confirm this query:   ${query}`,
-        choices: ["yes", "no"]
-      }
-    ]).then(function (answer) {
-      if (answer.confirm === "yes") {
-        switch (action) {
-          case "add":
-            connection.query(query, function (err, res) {
-              console.log(`Your database addition confirmed!`)
-              returnHome();
-            });
-            break;
-          case "delete":
-            connection.query(query, function (err, res) {
-              console.log(`Your database deletion confirmed!`)
-              returnHome();
-            });
-            break;
-          case "update":
-            connection.query(query, function (err, res) {
-              console.log(`Your database update confirmed!`)
-              returnHome();
-            });
-            break;
-          default:
-            break;
-        }
-      } else {
-        returnHome();
-      }
-    });
+  connection.query(cms.useQuery, function (err, res) {
 
-  } else {
-    switch (action) {
-      case "view":
-        connection.query(query, function (err, res) {
-          console.log(res);
+    if (action === "add" || action === "delete" || action === "update") {
+      inquirer.prompt([
+        {
+          name: "confirm",
+          type: "list",
+          message: `Do you confirm this query:   ${query}`,
+          choices: ["yes", "no"]
+        }
+      ]).then(function (answer) {
+        if (answer.confirm === "yes") {
+          switch (action) {
+            case "add":
+              connection.query(query, function (err, res) {
+                console.log(`Your database addition confirmed!`)
+                returnHome();
+              });
+              break;
+            case "delete":
+              connection.query(query, function (err, res) {
+                console.log(`Your database deletion confirmed!`)
+                returnHome();
+              });
+              break;
+            case "update":
+              connection.query(query, function (err, res) {
+                console.log(`Your database update confirmed!`)
+                returnHome();
+              });
+              break;
+            default:
+              break;
+          }
+        } else {
           returnHome();
-        });
-        break;
-      case "update view":
-        connection.query(query, function (err, res) {
-          updateField(res, category);
-        });
-        break;
+        }
+      });
+
+    } else {
+      switch (action) {
+        case "view":
+          connection.query(query, function (err, res) {
+            console.log(res);
+            returnHome();
+          });
+          break;
+        case "update view":
+          connection.query(query, function (err, res) {
+            updateField(res, category);
+          });
+          break;
+      }
     }
-  }
+  });
 }

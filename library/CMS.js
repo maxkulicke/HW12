@@ -1,7 +1,12 @@
 class CMS {
 
-  constructor(name) {
+  constructor(name, database) {
     this.name = name;
+    this.database = database;
+    this.useQuery = 
+    `USE ${database};
+    
+    `
   }
 
   getRoleID(role) {
@@ -61,22 +66,22 @@ class CMS {
   addEmployee(employee) {
     if (employee.manager_id) {
       var template = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES 
-      (${ employee.first_name}, ${employee.last_name}, ${employee.role_id}, ${employee.manager_id});`;
+      ('${ employee.first_name}', '${employee.last_name}', ${employee.role_id}, ${employee.manager_id});`;
     } else {
       var template = `INSERT INTO employees (first_name, last_name, role_id) VALUES 
-    (${ employee.first_name}, ${employee.last_name}, ${employee.role_id});`;
+      ('${ employee.first_name}', '${employee.last_name}', ${employee.role_id});`;
     }
     return template;
   }
 
   addRole(role) {
     const template = `INSERT INTO roles(id, title, salary, department_id) VALUES
-      (${ role.id}, ${role.title}, ${role.salary}, ${role.department_id}); `
+      (${ role.id}, '${role.title}', ${role.salary}, ${role.department_id}); `
     return template;
   }
 
   addDept(dept) {
-    const template = `INSERT INTO departments(id, name) VALUES(${dept.id}, ${dept.name}); `
+    const template = `INSERT INTO departments(id, name) VALUES(${dept.id}, '${dept.name}'); `
     return template;
   }
 
