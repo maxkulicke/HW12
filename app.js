@@ -2,8 +2,10 @@ const mysql = require('mysql');
 const CMS = require("./library/CMS");
 var inquirer = require("inquirer");
 
+
 const connection = mysql.createConnection({
   host: 'localhost',
+  port: 3306,
   user: 'root',
   password: 'yourRootPassword',
   database: 'employeesDB'
@@ -16,6 +18,7 @@ connection.connect((err) => {
 });
 
 const cms = new CMS("Max's CMS");
+
 
 async function start() {
   try {
@@ -35,6 +38,7 @@ async function start() {
   }
 }
 
+
 function returnHome() {
   inquirer.prompt({
     name: "return",
@@ -52,6 +56,7 @@ function returnHome() {
   })
 }
 
+
 function actionPrompt() {
   const action = inquirer.prompt({
     name: "action",
@@ -62,6 +67,7 @@ function actionPrompt() {
   return action;
 }
 
+
 function categoryPrompt(action) {
   const category = inquirer.prompt({
     name: "category",
@@ -71,6 +77,7 @@ function categoryPrompt(action) {
   })
   return category;
 }
+
 
 function actionChooser(action, category) {
   switch (action) {
@@ -90,6 +97,7 @@ function actionChooser(action, category) {
       break;
   }
 }
+
 
 // does this need to be async?
 async function addRunner(category) {
@@ -111,6 +119,7 @@ async function addRunner(category) {
     console.log(err);
   }
 }
+
 
 function deleteRunner(category) {
   inquirer.prompt([
@@ -145,24 +154,26 @@ function deleteRunner(category) {
   })
 }
 
+
 function viewRunner(category) {
-    switch (category) {
-      case "employee":
-        var allQuery = cms.viewAllTemplate(`employees`);
-        selectObjectMaker(category, allQuery, "view");
-        break;
-      case "role":
-        var allQuery = cms.viewAllTemplate(`roles`);
-        selectObjectMaker(category, allQuery, "view");
-        break;
-      case "department":
-        var allQuery = cms.viewAllTemplate(`departments`);
-        selectObjectMaker(category, allQuery, "view");
-        break;
-      default:
-        break;
-    }
+  switch (category) {
+    case "employee":
+      var allQuery = cms.viewAllTemplate(`employees`);
+      selectObjectMaker(category, allQuery, "view");
+      break;
+    case "role":
+      var allQuery = cms.viewAllTemplate(`roles`);
+      selectObjectMaker(category, allQuery, "view");
+      break;
+    case "department":
+      var allQuery = cms.viewAllTemplate(`departments`);
+      selectObjectMaker(category, allQuery, "view");
+      break;
+    default:
+      break;
+  }
 }
+
 
 function updateRunner(category) {
   switch (category) {
@@ -182,6 +193,7 @@ function updateRunner(category) {
       break;
   }
 }
+
 
 function getEmployeeInfo() {
   inquirer.prompt([
@@ -222,6 +234,7 @@ function getEmployeeInfo() {
   })
 }
 
+
 function getRoleInfo() {
   inquirer.prompt([
     {
@@ -256,6 +269,7 @@ function getRoleInfo() {
   })
 }
 
+
 function getDepartmentInfo() {
   inquirer.prompt([
     {
@@ -277,6 +291,7 @@ function getDepartmentInfo() {
 
   })
 }
+
 
 function selectObjectMaker(category, allQuery, action) {
   switch (category) {
@@ -345,12 +360,14 @@ function selectObjectMaker(category, allQuery, action) {
   }
 }
 
+
 async function selector(category, results) {
   var choicesArray = [];
   switch (category) {
     case "employee":
       choicesArray = results.map(function nameGetter(object) {
-        return `${object.first_name} ${object.last_name} id: ${object.id} manager id: ${object.manager_id}`;
+        return `${object.first_name} ${object.last_name} id: ${object.id} 
+        manager id: ${object.manager_id}`;
       })
       break;
     case "department":
@@ -360,7 +377,8 @@ async function selector(category, results) {
       break;
     case "role":
       choicesArray = results.map(function roleGetter(object) {
-        return `${object.title} id: ${object.id} salary: ${object.salary} department id: ${object.department_id}`;
+        return `${object.title} id: ${object.id} salary: ${object.salary} 
+        department id: ${object.department_id}`;
       })
       break;
     default:
@@ -376,6 +394,7 @@ async function selector(category, results) {
     });
   return selection;
 }
+
 
 function queryMaker(object, action, category) {
   var query = ``;
@@ -442,6 +461,7 @@ function queryMaker(object, action, category) {
   querySender(query, action, category);
 }
 
+
 function updateField(objectArray, category) {
   var object = objectArray[0];
   var fields = [];
@@ -478,12 +498,12 @@ function updateField(objectArray, category) {
       message: "Do you confirm this change? This change will be permanent...",
       choices: ["yes", "no"]
     },
-    {
-      name: "updateAgain",
-      type: "list",
-      message: `Would you like to update another field for this ${category}?`,
-      choices: ["yes", "no"]
-    }
+    // {
+    //   name: "updateAgain",
+    //   type: "list",
+    //   message: `Would you like to update another field for this ${category}?`,
+    //   choices: ["yes", "no"]
+    // }
   ]).then(function (answer) {
     switch (category) {
       case "employee":
@@ -501,63 +521,64 @@ function updateField(objectArray, category) {
       default:
         break
     }
-    if (answer.updateAgain === "yes") {
-      updateField(objectArray, category);
-    } else {
-      returnHome();
-    }
+    // if (answer.updateAgain === "yes") {
+    //   updateField(objectArray, category);
+    // }
   });
 }
 
-// TODO: query confirmation function
+
 function querySender(query, action, category) {
-  console.log(`querySender sending query: ${query}`);
-  // console.log(`action: ${action} & query: ${query}`);
-  switch (action) {
-    case "add":
-      // connection.query(query, function (err, res) {
-      //   console.log(res);
-      console.log(`Add confirmed!`)
-
-      returnHome();
-      //   return;
-      // });
-      break;
-    case "delete":
-      // connection.query(query, function (err, res) {
-      //   console.log(res);
-      console.log(`Delete confirmed!`)
-
-      returnHome();
-      //   return;
-      // });
-      break;
-    case "view":
-      connection.query(query, function (err, res) {
-        console.log(res);
+  if (action === "add" || action === "delete" || action === "update") {
+    inquirer.prompt([
+      {
+        name: "confirm",
+        type: "list",
+        message: `Do you confirm this query:   ${query}`,
+        choices: ["yes", "no"]
+      }
+    ]).then(function (answer) {
+      if (answer.confirm === "yes") {
+        switch (action) {
+          case "add":
+            connection.query(query, function (err, res) {
+              console.log(`Your database addition confirmed!`)
+              returnHome();
+            });
+            break;
+          case "delete":
+            connection.query(query, function (err, res) {
+              console.log(`Your database deletion confirmed!`)
+              returnHome();
+            });
+            break;
+          case "update":
+            connection.query(query, function (err, res) {
+              console.log(`Your database update confirmed!`)
+              returnHome();
+            });
+            break;
+          default:
+            break;
+        }
+      } else {
         returnHome();
-        console.log(`View confirmed!`)
-        // return;
-      });
-      break;
-    case "update view":
-      connection.query(query, function (err, res) {
-        console.log(res);
-        console.log(`Update View confirmed!`)
-        updateField(res, category);
-        //   return;
-      });
-      break;
-    case "update":
-      // connection.query(query, function (err, res) {
-      //   console.log(res);
-      console.log(`Update confirmed!`)
-      // returnHome();
-      //   return;
-      // });
-      break;
-    default:
-      break;
-  }
+      }
+    });
 
+  } else {
+    switch (action) {
+      case "view":
+        connection.query(query, function (err, res) {
+          console.log(res);
+          returnHome();
+        });
+        break;
+      case "update view":
+        connection.query(query, function (err, res) {
+          updateField(res, category);
+        });
+        break;
+    }
+  }
 }

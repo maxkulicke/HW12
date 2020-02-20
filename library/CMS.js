@@ -1,6 +1,6 @@
 class CMS {
 
-  constructor() {
+  constructor(name) {
     this.name = name;
   }
 
