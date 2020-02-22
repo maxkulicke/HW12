@@ -3,8 +3,8 @@ class CMS {
   constructor(name, database) {
     this.name = name;
     this.database = database;
-    this.useQuery = 
-    `USE ${database};
+    this.useQuery =
+      `USE ${database};
     
     `
   }
@@ -48,7 +48,7 @@ class CMS {
   }
 
   viewEmployee(employee) {
-    const template = `SELECT first_name, last_name, id, role_id FROM employees WHERE first_name = 
+    const template = `SELECT first_name, last_name, id, role_id, manager_id FROM employees WHERE first_name = 
     '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
     return template;
   }
@@ -87,37 +87,51 @@ class CMS {
 
   updateEmployee(update, employee) {
     const fieldArray = update.field.split(":");
-    const template = `UPDATE employees SET ${fieldArray[0]} = ${update.value} WHERE first_name = 
+    if (fieldArray[0] === "first_name" || fieldArray[0] === "last_name") {
+      var template = `UPDATE employees SET ${fieldArray[0]} = '${update.value}' WHERE first_name = 
     '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
+    } else {
+      var template = `UPDATE employees SET ${fieldArray[0]} = ${update.value} WHERE first_name = 
+    '${employee.first_name}' AND last_name = '${employee.last_name}' AND id = ${employee.id};`
+    }
     return template;
   }
 
   updateRole(update, role) {
     const fieldArray = update.field.split(":");
-    const template = `UPDATE roles SET ${fieldArray[0]} = ${update.value} WHERE 
+    if (fieldArray[0] === "title") {
+      var template = `UPDATE roles SET ${fieldArray[0]} = '${update.value}' WHERE 
     title = '${role.title}' AND id = ${role.id};`;
-    return template;  
+    } else {
+      var template = `UPDATE roles SET ${fieldArray[0]} = ${update.value} WHERE 
+      title = '${role.title}' AND id = ${role.id};`;
+    }
+    return template;
   }
 
   updateDept(update, dept) {
     const fieldArray = update.field.split(":");
-    const template = `UPDATE departments SET ${fieldArray[0]} = ${update.value} WHERE name = '${dept.name}';`
-    return template;  
+    if (fieldArray[0] === "name") {
+      var template = `UPDATE departments SET ${fieldArray[0]} = '${update.value}' WHERE name = '${dept.name}';`
+    } else {
+      var template = `UPDATE departments SET ${fieldArray[0]} = ${update.value} WHERE name = '${dept.name}';`
+    }
+    return template;
   }
 
   deleteEmployee(employee) {
-    const template = `DELETE FROM employees WHERE first_name = ${employee.first_name} AND 
-    last_name = ${employee.last_name} AND id = ${employee.id};`;
+    const template = `DELETE FROM employees WHERE first_name = '${employee.first_name}' AND 
+    last_name = '${employee.last_name}' AND id = ${employee.id};`;
     return template;
   }
 
   deleteRole(role) {
-    const template = `DELETE FROM roles WHERE title = ${role.title} AND id = ${role.id};`;
+    const template = `DELETE FROM roles WHERE title = '${role.title}' AND id = ${role.id};`;
     return template;
   }
 
   deleteDept(dept) {
-    const template = `DELETE FROM departments WHERE name = ${dept.name};`;
+    const template = `DELETE FROM departments WHERE name = '${dept.name}';`;
     return template;
   }
 }

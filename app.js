@@ -1,7 +1,9 @@
 const mysql = require('mysql');
 const CMS = require("./library/CMS");
-var inquirer = require("inquirer");
+const inquirer = require("inquirer");
+const cTable = require('console.table');
 
+inquirer.registerPrompt("table", require("./node_modules/inquirer-table-prompt/index"));
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -39,7 +41,7 @@ async function start() {
 }
 
 
-function returnHome() {
+const returnHome = () => {
   inquirer.prompt({
     name: "return",
     type: "list",
@@ -57,7 +59,7 @@ function returnHome() {
 }
 
 
-function actionPrompt() {
+const actionPrompt = () => {
   const action = inquirer.prompt({
     name: "action",
     type: "list",
@@ -68,7 +70,7 @@ function actionPrompt() {
 }
 
 
-function categoryPrompt(action) {
+const categoryPrompt = (action) => {
   const category = inquirer.prompt({
     name: "category",
     type: "list",
@@ -79,7 +81,7 @@ function categoryPrompt(action) {
 }
 
 
-function actionChooser(action, category) {
+const actionChooser = (action, category) => {
   switch (action) {
     case "view":
       viewRunner(category);
@@ -99,9 +101,7 @@ function actionChooser(action, category) {
 }
 
 
-// does this need to be async?
-async function addRunner(category) {
-  try {
+const addRunner = (category) => {
     switch (category) {
       case "employee":
         getEmployeeInfo();
@@ -115,13 +115,10 @@ async function addRunner(category) {
       default:
         break;
     }
-  } catch (err) {
-    console.log(err);
-  }
 }
 
 
-function deleteRunner(category) {
+const deleteRunner = (category) => {
   inquirer.prompt([
     {
       name: "confirm",
@@ -155,7 +152,7 @@ function deleteRunner(category) {
 }
 
 
-function viewRunner(category) {
+const viewRunner = (category) => {
   switch (category) {
     case "employee":
       var allQuery = cms.viewAllTemplate(`employees`);
@@ -175,7 +172,7 @@ function viewRunner(category) {
 }
 
 
-function updateRunner(category) {
+const updateRunner = (category) => {
   switch (category) {
     case "employee":
       var allQuery = cms.viewAllTemplate(`employees`);
@@ -195,7 +192,7 @@ function updateRunner(category) {
 }
 
 
-function getEmployeeInfo() {
+const getEmployeeInfo = () => {
   inquirer.prompt([
     {
       name: "first_name",
@@ -235,7 +232,7 @@ function getEmployeeInfo() {
 }
 
 
-function getRoleInfo() {
+const getRoleInfo = () => {
   inquirer.prompt([
     {
       name: "id",
@@ -270,7 +267,7 @@ function getRoleInfo() {
 }
 
 
-function getDepartmentInfo() {
+const getDepartmentInfo = () => {
   inquirer.prompt([
     {
       name: "id",
@@ -293,7 +290,7 @@ function getDepartmentInfo() {
 }
 
 
-function selectObjectMaker(category, allQuery, action) {
+const selectObjectMaker = (category, allQuery, action) => {
   switch (category) {
     case "employee":
       connection.query(allQuery, async function (err, res) {
@@ -366,8 +363,7 @@ async function selector(category, results) {
   switch (category) {
     case "employee":
       choicesArray = results.map(function nameGetter(object) {
-        return `${object.first_name} ${object.last_name} id: ${object.id} 
-        manager id: ${object.manager_id}`;
+        return `${object.first_name} ${object.last_name} id: ${object.id} manager id: ${object.manager_id}`;
       })
       break;
     case "department":
@@ -377,14 +373,15 @@ async function selector(category, results) {
       break;
     case "role":
       choicesArray = results.map(function roleGetter(object) {
-        return `${object.title} id: ${object.id} salary: ${object.salary} 
-        department id: ${object.department_id}`;
+        return `${object.title} id: ${object.id} salary: ${object.salary} department id: ${object.department_id}`;
       })
       break;
     default:
       break;
   }
 
+  const table = cTable.getTable(results);
+  console.log(table);
   const selection = await inquirer.prompt(
     {
       name: "selection",
@@ -396,7 +393,7 @@ async function selector(category, results) {
 }
 
 
-function queryMaker(object, action, category) {
+const queryMaker = (object, action, category) => {
   var query = ``;
   switch (category) {
     case "employee":
@@ -462,7 +459,7 @@ function queryMaker(object, action, category) {
 }
 
 
-function updateField(objectArray, category) {
+const updateField = (objectArray, category) => {
   var object = objectArray[0];
   var fields = [];
   switch (category) {
@@ -498,12 +495,6 @@ function updateField(objectArray, category) {
       message: "Do you confirm this change? This change will be permanent...",
       choices: ["yes", "no"]
     },
-    // {
-    //   name: "updateAgain",
-    //   type: "list",
-    //   message: `Would you like to update another field for this ${category}?`,
-    //   choices: ["yes", "no"]
-    // }
   ]).then(function (answer) {
     switch (category) {
       case "employee":
@@ -521,14 +512,11 @@ function updateField(objectArray, category) {
       default:
         break
     }
-    // if (answer.updateAgain === "yes") {
-    //   updateField(objectArray, category);
-    // }
   });
 }
 
 
-function querySender(query, action, category) {
+const querySender = (query, action, category) => {
   connection.query(cms.useQuery, function (err, res) {
 
     if (action === "add" || action === "delete" || action === "update") {
@@ -572,7 +560,8 @@ function querySender(query, action, category) {
       switch (action) {
         case "view":
           connection.query(query, function (err, res) {
-            console.log(res);
+            const table = cTable.getTable(res);
+            console.log(table);
             returnHome();
           });
           break;
